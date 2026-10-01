@@ -5,6 +5,7 @@
  *   npm run simulate                                  # against http://localhost:3000
  *   npm run simulate -- https://your-app.vercel.app   # against a deployment
  *   npm run simulate -- --fast                        # no pauses between lines
+ *   npm run simulate -- --no-chat                     # skip the @copilot chat command
  *
  * It needs DATABASE_URL and RECALL_WEBHOOK_SECRET (same values as the target app) because it
  * creates the meeting row directly instead of asking Recall for a bot. Everything after that
@@ -21,6 +22,7 @@ for (const file of [".env.local", ".env"]) if (existsSync(file)) process.loadEnv
 
 const args = process.argv.slice(2);
 const fast = args.includes("--fast");
+const withChat = !args.includes("--no-chat");
 const target = (args.find((a) => !a.startsWith("--")) ?? "http://localhost:3000").replace(/\/+$/, "");
 
 const REP = { id: 100, name: "Riley Rep", is_host: true, platform: "desktop", extra_data: null, email: null };
@@ -116,7 +118,7 @@ async function main() {
     console.log(`${speaker.name}: ${line}`);
     await pause(1200);
 
-    if (i === 11) {
+    if (i === 11 && withChat) {
       await participantEvent("participant_events.chat_message", REP, {
         text: "@copilot note send SOC 2 report under NDA",
         to: "everyone",

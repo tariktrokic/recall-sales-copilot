@@ -48,7 +48,7 @@ function Progress({ meeting, view }: { meeting: MeetingSummary; view: MeetingVie
   const steps = [
     ["Call ended", true],
     ["Recording ready", meeting.statusCode === "done"],
-    ["Accurate transcript", view.postCall !== null],
+    [view.postCall?.source === "live" ? "Transcript (live fallback)" : "Accurate transcript", view.postCall !== null],
     ["Summary and follow-up", view.insights !== null],
   ] as const;
   return (

@@ -12,7 +12,7 @@ const TONE_CLASSES: Record<Tone, string> = {
 export function StatusBadge({ code }: { code: string }) {
   const tone = statusTone(code);
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE_CLASSES[tone]}`}>
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${TONE_CLASSES[tone]}`}>
       {tone === "live" && <span className="size-1.5 animate-pulse rounded-full bg-red-600" />}
       {describeStatus(code).label}
     </span>

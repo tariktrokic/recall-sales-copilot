@@ -22,7 +22,7 @@ export function MeetingDashboard({ initialMeeting, initialEvents }: { initialMee
 
   // After the call, prefer the accurate post-call transcript for every panel.
   const segments = view.postCall?.segments ?? view.finals;
-  const repId = meeting.repParticipantId ?? defaultRepId(segments);
+  const repId = meeting.repParticipantId ?? defaultRepId(segments) ?? defaultRepId(view.participants);
   const talkTime = useMemo(() => computeTalkTime(segments), [segments]);
   const questions = useMemo(() => prospectQuestions(segments, repId), [segments, repId]);
   const afterCall = AFTER_CALL.has(meeting.statusCode) || view.postCall !== null;
