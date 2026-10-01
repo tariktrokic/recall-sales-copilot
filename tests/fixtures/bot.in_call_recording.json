@@ -1,0 +1,7 @@
+{
+  "event": "bot.in_call_recording",
+  "data": {
+    "data": { "code": "in_call_recording", "sub_code": null, "updated_at": "2026-10-01T18:00:05.000Z" },
+    "bot": { "id": "6b9b9d3e-0c0c-4b9b-9a5e-3c3b0c2f1a11", "metadata": { "app_meeting_id": "11111111-1111-4111-8111-111111111111" } }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "event": "participant_events.chat_message",
+  "data": {
+    "data": {
+      "participant": { "id": 100, "name": "Riley Rep", "is_host": true, "platform": "desktop", "extra_data": null, "email": null },
+      "timestamp": { "absolute": "2026-10-01T18:10:00.000Z", "relative": 300.5 },
+      "data": { "text": "@copilot note send the security whitepaper", "to": "everyone" }
+    },
+    "realtime_endpoint": { "id": "re_1", "metadata": {} },
+    "participant_events": { "id": "pe_1", "metadata": {} },
+    "recording": { "id": "rec_123", "metadata": {} },
+    "bot": { "id": "6b9b9d3e-0c0c-4b9b-9a5e-3c3b0c2f1a11", "metadata": { "app_meeting_id": "11111111-1111-4111-8111-111111111111" } }
+  }
+}
