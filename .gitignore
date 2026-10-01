@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build / test output
+dist/
+coverage/
+*.tsbuildinfo
+
+# secrets: ignore every env file except the documented example
+.env*
+!.env.example
+.cursor/mcp.json
+
+# vercel
+.vercel
+
+# misc
+.DS_Store
+*.log

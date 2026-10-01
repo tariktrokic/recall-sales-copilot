@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "recall": {
+      "url": "https://<your-region>.recall.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-recall-mcp-key>"
+      }
+    }
+  }
+}
