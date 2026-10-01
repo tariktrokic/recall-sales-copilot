@@ -46,6 +46,13 @@ export async function handleChatCommand(meeting: Meeting, command: ChatCommand, 
   }
 
   const message = fitChatMessage(reply, maxChatLength(meeting.platform));
-  await recall.sendChatMessage(meeting.botId, { message });
+  try {
+    await recall.sendChatMessage(meeting.botId, { message });
+  } catch (err) {
+    // Typically the bot already left, or the platform blocks bot chat for this meeting.
+    const detail = err instanceof Error ? err.message : String(err);
+    await repo.appendEvent(meeting.id, { type: "pipeline.error", payload: { stage: "chat reply", message: detail, at: at() } });
+    return;
+  }
   await repo.appendEvent(meeting.id, { type: "chat.out", payload: { text: message, at: at() } });
 }
