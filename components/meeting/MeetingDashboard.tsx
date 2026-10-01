@@ -4,7 +4,9 @@ import { useMemo } from "react";
 import { useMeetingEvents } from "@/hooks/useMeetingEvents";
 import { prospectQuestions } from "@/lib/copilot/questions";
 import { computeTalkTime, defaultRepId } from "@/lib/copilot/talkTime";
+import { speakerLabels } from "@/lib/copilot/speakerLabels";
 import type { MeetingSummary, StoredEvent } from "@/lib/copilot/types";
+import type { MeetingView } from "@/lib/copilot/view";
 import { ChatPanel } from "./ChatPanel";
 import { LiveTranscript } from "./LiveTranscript";
 import { MeetingHeader } from "./MeetingHeader";
@@ -18,7 +20,8 @@ const AFTER_CALL = new Set(["call_ended", "done", "fatal"]);
 
 /** The whole meeting page. Everything on it is derived from the polled event log. */
 export function MeetingDashboard({ initialMeeting, initialEvents }: { initialMeeting: MeetingSummary; initialEvents: StoredEvent[] }) {
-  const { meeting, view, error, setMeeting } = useMeetingEvents(initialMeeting, initialEvents);
+  const { meeting, view: rawView, error, setMeeting } = useMeetingEvents(initialMeeting, initialEvents);
+  const view = useMemo(() => withDistinctNames(rawView), [rawView]);
 
   // After the call, prefer the accurate post-call transcript for every panel.
   const segments = view.postCall?.segments ?? view.finals;
@@ -62,4 +65,17 @@ export function MeetingDashboard({ initialMeeting, initialEvents }: { initialMee
       </div>
     </div>
   );
+}
+
+function withDistinctNames(view: MeetingView): MeetingView {
+  const labels = speakerLabels([...view.participants, ...view.finals, ...(view.postCall?.segments ?? [])]);
+  const relabel = <T extends { participantId: number; name: string }>(xs: T[]) =>
+    xs.map((x) => ({ ...x, name: labels.get(x.participantId) ?? x.name }));
+  return {
+    ...view,
+    finals: relabel(view.finals),
+    partials: relabel(view.partials),
+    participants: relabel(view.participants),
+    postCall: view.postCall && { ...view.postCall, segments: relabel(view.postCall.segments) },
+  };
 }

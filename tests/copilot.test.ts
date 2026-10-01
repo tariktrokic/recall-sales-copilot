@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { fitChatMessage, parseCommand, REPLY_PREFIX } from "@/lib/copilot/commands";
 import { ruleBasedInsights } from "@/lib/copilot/insights";
 import { isQuestion, prospectQuestions } from "@/lib/copilot/questions";
+import { speakerLabels } from "@/lib/copilot/speakerLabels";
 import { computeTalkTime, defaultRepId, repTalkNudge } from "@/lib/copilot/talkTime";
 import { formatTimestamp, toSegment } from "@/lib/copilot/transcript";
 import type { Segment, StoredEvent } from "@/lib/copilot/types";
@@ -106,6 +107,18 @@ describe("buildMeetingView", () => {
     expect(next.finals.map((f) => f.text)).toEqual(["How does pricing work?"]);
     expect(next.partials.map((p) => p.name)).toEqual(["Riley Rep"]);
     expect(first.finals).toHaveLength(0);
+  });
+});
+
+describe("speakerLabels", () => {
+  it("numbers participants who share a name and leaves unique names alone", () => {
+    const labels = speakerLabels([
+      { participantId: 200, name: "Tarik" },
+      { participantId: 100, name: "Tarik" },
+      { participantId: 300, name: "Pat" },
+      { participantId: 100, name: "Tarik" },
+    ]);
+    expect(Object.fromEntries(labels)).toEqual({ 100: "Tarik (1)", 200: "Tarik (2)", 300: "Pat" });
   });
 });
 
