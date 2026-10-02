@@ -105,7 +105,7 @@ flowchart LR
   API --> DB
 ```
 
-**Everything is an event in one append-only table.** Each webhook handler verifies the signature, records the `webhook-id` so retries are ignored, writes one normalized row to `meeting_events`, and returns 200. Anything slow (replying in the chat, requesting the post-call transcript, calling the LLM) runs afterwards in Next.js [`after()`](https://nextjs.org/docs/app/api-reference/functions/after). Recall delivers realtime webhooks in order, so a slow handler would delay every transcript line behind it.
+**Everything is an event in one append-only table.** Each webhook handler verifies the signature, records the `webhook-id` so retries are ignored, writes one normalized row to `meeting_events`, and returns 200. Anything slow (replying in the chat, requesting the post-call transcript, calling the LLM) runs afterwards in Next.js [`after()`](https://nextjs.org/docs/app/api-reference/functions/after). Recall retries a realtime webhook every second until it gets a 2xx and gives up on the endpoint after 60 attempts, so the handler has to answer fast and never do slow work inline. Writing the row before responding means the log order matches the order the events arrived in.
 
 **The browser polls our database, not Recall.** The meeting page asks for events after the last id it has seen, about once a second while the call is live, and folds them into a view with the same pure functions the server uses ([`lib/copilot/view.ts`](lib/copilot/view.ts)). Polling suits serverless: webhooks and browsers land on different instances, so there's no shared memory to push from. Swapping in Pusher or Ably only touches `appendEvent()` and [`hooks/useMeetingEvents.ts`](hooks/useMeetingEvents.ts).
 
@@ -126,30 +126,19 @@ Sequence diagrams for the bot lifecycle, realtime path, and post-call path are i
 | [`lib/db/repository.ts`](lib/db/repository.ts) | Every database query, next to the connection and schema in `lib/db/`. |
 | [`lib/meetings/ingestService.ts`](lib/meetings/ingestService.ts) | What each webhook means: Recall payloads become our events, plus any slow follow-up work. |
 | [`lib/meetings/meetingService.ts`](lib/meetings/meetingService.ts) | Dashboard actions: create a meeting (send a bot), remove the bot, get the recording. |
-| [`lib/meetings/postCallService.ts`](lib/meetings/postCallService.ts), [`chatService.ts`](lib/meetings/chatService.ts) | Post-call transcript and summary (with fallback); `@copilot` replies (with a database-backed rate limit). |
-| [`lib/copilot/`](lib/copilot) | Pure functions shared by server and browser: talk time, question detection, chat command parsing, the event-to-view reducer, LLM prompts and the insights schema. |
+| [`lib/meetings/postCallService.ts`](lib/meetings/postCallService.ts), [`chatService.ts`](lib/meetings/chatService.ts), [`insightsService.ts`](lib/meetings/insightsService.ts) | Post-call transcript and summary (with fallback); `@copilot` replies (with a database-backed rate limit); the LLM prompts behind both. |
+| [`lib/copilot/`](lib/copilot) | Pure functions shared by server and browser: talk time, question detection, chat command parsing, the event-to-view reducer, the insights schema and the rule-based summary. |
 | [`hooks/useMeetingEvents.ts`](hooks/useMeetingEvents.ts) | The polling hook, with adaptive intervals. |
 | [`tests/`](tests) | Unit tests for all of the above, using webhook fixtures in `tests/fixtures/`. |
 
 ## Extending this
 
 - **Push to your CRM.** `summarize()` in [`lib/meetings/postCallService.ts`](lib/meetings/postCallService.ts) has the validated `SalesInsights` object in hand. Add a HubSpot or Salesforce call next to `saveInsights()`.
-- **Change the methodology.** The insights schema and prompts are in [`lib/copilot/insightsSchema.ts`](lib/copilot/insightsSchema.ts) and [`insights.ts`](lib/copilot/insights.ts). Swap MEDDIC for BANT or SPICED by editing the schema; the UI renders whatever fields it has.
+- **Change the methodology.** The insights schema is in [`lib/copilot/insightsSchema.ts`](lib/copilot/insightsSchema.ts) and the prompts in [`lib/meetings/insightsService.ts`](lib/meetings/insightsService.ts). Swap MEDDIC for BANT or SPICED by editing the schema; the UI renders whatever fields it has.
 - **Join calls automatically.** Recall's [Calendar integration](https://docs.recall.ai/docs/calendar-integration) can schedule bots from reps' calendars. It needs Google or Microsoft OAuth, which is why this demo uses a pasted link.
 - **Let the bot speak.** [Output Media](https://docs.recall.ai/docs/stream-media) lets a bot play audio or show a webpage, the basis for a voice agent that answers questions mid-call.
 - **Record without a bot.** The [Desktop Recording SDK](https://docs.recall.ai/docs/desktop-sdk) captures calls from the rep's computer. Its events can go into the same `meeting_events` log.
 - **Add commands.** Chat commands are parsed in [`lib/copilot/commands.ts`](lib/copilot/commands.ts) and answered in [`lib/meetings/chatService.ts`](lib/meetings/chatService.ts). `@copilot ask <question>` is a natural next one.
-
-## Production checklist
-
-This is a demo. Before real customers use it:
-
-- **Authentication and tenancy.** There's no login: anyone with the URL can send a bot on your Recall account. Add auth, scope meetings to users or orgs, and check ownership in every route.
-- **A durable queue instead of `after()`.** `after()` runs once, with no retry if the function dies. Use Vercel Queues, Inngest, or SQS for the post-call pipeline and chat replies.
-- **Push instead of polling.** Each open meeting tab makes about one indexed query per second while live (fewer when hidden or after the call). That's fine for a demo; at scale, publish events through Pusher, Ably, or Supabase Realtime.
-- **Consent and retention.** The bot announces itself, but check the recording-consent rules where your users are. Media is kept for 7 days (`retention` in `botConfig.ts`); align that with your policy and delete data on request.
-- **Prune the event log.** Partial transcript events are only useful while the call is live. Delete them after `done`.
-- **Observability.** Log webhook latency and failures, and alert on `bot.fatal` and on `pipeline.error` events.
 
 ## Troubleshooting
 

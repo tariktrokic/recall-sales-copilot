@@ -1,6 +1,6 @@
 import * as recall from "@/lib/recall/client";
 import { fitChatMessage, HELP_TEXT, maxChatLength, REPLY_PREFIX, type ChatCommand } from "@/lib/copilot/commands";
-import { generateRecap } from "@/lib/copilot/insights";
+import { generateRecap } from "./insightsService";
 import type { Speaker } from "@/lib/copilot/types";
 import { APP_EVENT, PIPELINE_STAGE } from "@/lib/constants/events";
 import type { Meeting } from "@/lib/db/schema";

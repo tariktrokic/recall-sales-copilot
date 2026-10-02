@@ -7,7 +7,7 @@ const insights = vi.hoisted(() => ({ generateRecap: vi.fn() }));
 
 vi.mock("@/lib/recall/client", () => recall);
 vi.mock("@/lib/db/repository", () => repo);
-vi.mock("@/lib/copilot/insights", () => insights);
+vi.mock("@/lib/meetings/insightsService", () => insights);
 
 const { handleChatCommand } = await import("@/lib/meetings/chatService");
 

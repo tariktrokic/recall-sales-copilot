@@ -2,7 +2,7 @@ import { POST_CALL_TRANSCRIPT_KIND } from "@/lib/constants/recall";
 import { ASYNC_TRANSCRIPT_CONFIG } from "@/lib/recall/botConfig";
 import * as recall from "@/lib/recall/client";
 import { transcriptDownloadSchema } from "@/lib/recall/events";
-import { generateInsights } from "@/lib/copilot/insights";
+import { generateInsights } from "./insightsService";
 import { defaultRepId } from "@/lib/copilot/talkTime";
 import { toSegment } from "@/lib/copilot/transcript";
 import type { Segment } from "@/lib/copilot/types";

@@ -18,7 +18,7 @@ const insights = vi.hoisted(() => ({ generateInsights: vi.fn() }));
 
 vi.mock("@/lib/recall/client", () => recall);
 vi.mock("@/lib/db/repository", () => repo);
-vi.mock("@/lib/copilot/insights", () => insights);
+vi.mock("@/lib/meetings/insightsService", () => insights);
 
 const { processPostCallTranscript, requestPostCallTranscript } = await import("@/lib/meetings/postCallService");
 

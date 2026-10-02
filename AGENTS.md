@@ -22,7 +22,7 @@ A Next.js (App Router) demo app on the Recall.ai API. See `README.md` for what i
 
 - `lib/recall/`: Recall-specific code only (client, bot config, signature checks, schemas, sub-codes). No database access.
 - `lib/copilot/`: pure functions with no I/O, shared by server and browser. Keep them pure so the UI and the server compute the same thing.
-- `lib/meetings/`: business logic, one `*Service.ts` file per role: `ingestService` translates webhooks into events, `meetingService` handles dashboard actions, `postCallService` and `chatService` run the slow follow-up work.
+- `lib/meetings/`: business logic, one `*Service.ts` file per role: `ingestService` translates webhooks into events, `meetingService` handles dashboard actions, `postCallService` and `chatService` run the slow follow-up work, `insightsService` holds the LLM calls.
 - `lib/db/`: connection, schema, and `repository.ts`. All database queries go through the repository; nothing outside `lib/db/` builds queries.
 - `lib/constants/`: every event name, status code, and API path (Recall's and our own), one file per vocabulary. Don't write these as string literals elsewhere. The `MeetingEvent` union in `lib/copilot/types.ts` is built from `events.ts`.
 - `lib/webhooks/receiver.ts`: the shared receive pipeline for both Recall webhook routes. The route passes in the ingest function for its webhook type.

@@ -5,8 +5,9 @@ import { verifyRecallRequest, WebhookVerificationError } from "@/lib/recall/veri
 import * as repo from "@/lib/db/repository";
 
 /**
- * Work that must not delay the webhook response (Recall delivers realtime events in order,
- * so a slow handler holds up every transcript line behind it). Run with `after()`.
+ * Work that must not delay the webhook response. Recall retries a realtime webhook every second
+ * until it gets a 2xx, and marks the endpoint failed after 60 attempts, so the handler has to
+ * answer fast. Run with `after()`.
  */
 export type BackgroundTask = () => Promise<void>;
 

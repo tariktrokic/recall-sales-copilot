@@ -70,7 +70,7 @@ sequenceDiagram
   end
 ```
 
-- Recall delivers realtime webhooks for a bot one at a time, in order. Writing the row before responding keeps the log in order; everything slow runs in `after()` so the next transcript line isn't held up.
+- Writing the row before responding means the log order matches the order the events arrived in. Everything slow runs in `after()`: Recall retries a realtime webhook every second until it gets a 2xx and marks the endpoint failed after 60 attempts, so the response can't wait on an LLM call.
 - Recall has no "transcript so far" endpoint, so `@copilot recap` is built from the `transcript.final` rows already stored.
 - The rate limit is an atomic `UPDATE ... WHERE last_bot_reply_at < now() - 5s RETURNING`. An in-memory counter wouldn't work because each webhook may run in a different function instance.
 - Talk time, prospect questions, and the transcript are computed in the browser by the pure functions in [`lib/copilot/`](../lib/copilot), the same ones the server uses for recaps and summaries.
