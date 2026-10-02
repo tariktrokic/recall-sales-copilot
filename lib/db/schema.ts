@@ -1,4 +1,5 @@
 import { bigserial, index, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { APP_STATUS } from "@/lib/constants/status";
 
 export const meetings = pgTable("meetings", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -7,7 +8,7 @@ export const meetings = pgTable("meetings", {
   platform: text("platform").notNull(),
   joinAt: timestamp("join_at", { withTimezone: true }),
   // Latest Recall bot status. Open strings on purpose: Recall adds new codes over time.
-  statusCode: text("status_code").notNull().default("created"),
+  statusCode: text("status_code").notNull().default(APP_STATUS.created),
   subCode: text("sub_code"),
   repParticipantId: integer("rep_participant_id"),
   recordingId: text("recording_id"),
@@ -35,11 +36,22 @@ export const meetingEvents = pgTable(
   (t) => [index("meeting_events_meeting_id_id_idx").on(t.meetingId, t.id)],
 );
 
+/**
+ * The latest post-call summary per meeting, kept as a CRM-ready record. Only written today
+ * (`saveInsights()` in postCall.ts): the UI reads the same result from the `insights.ready`
+ * event instead. This is the row to sync to HubSpot or Salesforce, or to query across meetings.
+ */
 export const insights = pgTable("insights", {
+  // One row per meeting: generating the summary again overwrites the old one (an upsert).
   meetingId: uuid("meeting_id")
     .primaryKey()
     .references(() => meetings.id, { onDelete: "cascade" }),
+  /** A `SalesInsights` object, validated against salesInsightsSchema before it is saved. */
   data: jsonb("data").notNull(),
+  /**
+   * What produced `data`: `gateway:<AI_MODEL>` through the Vercel AI Gateway, the `AI_MODEL`
+   * id when using OPENAI_API_KEY directly, or `rules` when no LLM was available or the call failed.
+   */
   model: text("model").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

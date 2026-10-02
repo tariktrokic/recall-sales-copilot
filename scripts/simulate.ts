@@ -15,8 +15,9 @@
 import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { env } from "@/lib/env";
-import { insertMeeting, updateMeeting } from "@/lib/meetings/repository";
+import { insertMeeting, updateMeeting } from "@/lib/db/repository";
 import { signRecallPayload } from "@/lib/recall/verify";
+import { WEBHOOK_PATHS } from "@/lib/constants/urls";
 
 for (const file of [".env.local", ".env"]) if (existsSync(file)) process.loadEnvFile(file);
 
@@ -74,13 +75,13 @@ async function main() {
   }
 
   const status = (event: string, code: string, extra: Record<string, unknown> = {}) =>
-    post("/api/webhooks/recall", {
+    post(WEBHOOK_PATHS.status, {
       event,
       data: { data: { code, sub_code: null, updated_at: new Date().toISOString() }, bot, ...extra },
     });
 
   const realtime = (event: string, data: Record<string, unknown>) =>
-    post("/api/webhooks/recall/realtime", {
+    post(WEBHOOK_PATHS.realtime, {
       event,
       data: { data, realtime_endpoint: { id: "re_sim", metadata: {} }, recording, bot },
     });

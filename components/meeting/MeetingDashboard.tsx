@@ -7,6 +7,8 @@ import { computeTalkTime, defaultRepId } from "@/lib/copilot/talkTime";
 import { speakerLabels } from "@/lib/copilot/speakerLabels";
 import type { MeetingSummary, StoredEvent } from "@/lib/copilot/types";
 import type { MeetingView } from "@/lib/copilot/view";
+import { AFTER_CALL_STATUSES } from "@/lib/constants/status";
+import { APP_API } from "@/lib/constants/urls";
 import { ChatPanel } from "./ChatPanel";
 import { LiveTranscript } from "./LiveTranscript";
 import { MeetingHeader } from "./MeetingHeader";
@@ -15,8 +17,6 @@ import { PipelineErrors } from "./PipelineErrors";
 import { PostCall } from "./PostCall";
 import { StatusTimeline } from "./StatusTimeline";
 import { TalkTimePanel } from "./TalkTimePanel";
-
-const AFTER_CALL = new Set(["call_ended", "done", "fatal"]);
 
 /** The whole meeting page. Everything on it is derived from the polled event log. */
 export function MeetingDashboard({ initialMeeting, initialEvents }: { initialMeeting: MeetingSummary; initialEvents: StoredEvent[] }) {
@@ -28,11 +28,11 @@ export function MeetingDashboard({ initialMeeting, initialEvents }: { initialMee
   const repId = meeting.repParticipantId ?? defaultRepId(segments) ?? defaultRepId(view.participants);
   const talkTime = useMemo(() => computeTalkTime(segments), [segments]);
   const questions = useMemo(() => prospectQuestions(segments, repId), [segments, repId]);
-  const afterCall = AFTER_CALL.has(meeting.statusCode) || view.postCall !== null;
+  const afterCall = AFTER_CALL_STATUSES.has(meeting.statusCode) || view.postCall !== null;
 
   async function chooseRep(participantId: number) {
     setMeeting({ repParticipantId: participantId });
-    await fetch(`/api/meetings/${meeting.id}`, {
+    await fetch(APP_API.meeting(meeting.id), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ repParticipantId: participantId }),

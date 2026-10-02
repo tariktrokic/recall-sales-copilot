@@ -1,9 +1,19 @@
 import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
-import { getDb } from "@/lib/db/client";
-import { insights, meetingEvents, meetings, processedWebhooks, type Meeting } from "@/lib/db/schema";
+import { getDb } from "./client";
+import { insights, meetingEvents, meetings, processedWebhooks, type Meeting } from "./schema";
 import type { MeetingEvent, MeetingEventType, MeetingSummary, StoredEvent } from "@/lib/copilot/types";
 
-/** All database access goes through here, so swapping Neon for another store touches one file. */
+/**
+ * All database queries go through here; nothing outside `lib/db/` imports `getDb()`.
+ *
+ * - Another Postgres host: only `client.ts` changes (the Neon HTTP driver), because
+ *   Drizzle's query builder is the same on every Postgres driver.
+ * - Another SQL engine: `schema.ts` changes because its column types are Postgres-only
+ *   (uuid, jsonb, bigserial), and this file changes because some queries are too
+ *   (`make_interval` in `claimReplySlot`, `.returning()` with `onConflictDoNothing()`).
+ * - Off Drizzle or SQL entirely: `lib/db/` is rewritten, and nothing else is, since
+ *   callers only use functions like `appendEvent()` and never build queries.
+ */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

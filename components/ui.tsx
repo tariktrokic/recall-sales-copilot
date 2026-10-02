@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { RECALL_PLATFORM, type Platform } from "@/lib/constants/recall";
 import { describeStatus, statusTone, type Tone } from "@/lib/recall/subCodes";
 
 const TONE_CLASSES: Record<Tone, string> = {
@@ -37,10 +38,15 @@ export function Empty({ children }: { children: ReactNode }) {
   return <p className="text-sm text-zinc-400">{children}</p>;
 }
 
-export const PLATFORM_LABELS: Record<string, string> = {
-  google_meet: "Google Meet",
-  zoom: "Zoom",
-  microsoft_teams: "Microsoft Teams",
-  webex: "Webex",
-  unknown: "Meeting",
+const PLATFORM_LABELS: Record<Platform, string> = {
+  [RECALL_PLATFORM.googleMeet]: "Google Meet",
+  [RECALL_PLATFORM.zoom]: "Zoom",
+  [RECALL_PLATFORM.microsoftTeams]: "Microsoft Teams",
+  [RECALL_PLATFORM.webex]: "Webex",
+  [RECALL_PLATFORM.unknown]: "Meeting",
 };
+
+/** `meetings.platform` is a plain string in the database, so it may hold a value this app has no label for. */
+export function platformLabel(platform: string): string | undefined {
+  return Object.hasOwn(PLATFORM_LABELS, platform) ? PLATFORM_LABELS[platform as Platform] : undefined;
+}

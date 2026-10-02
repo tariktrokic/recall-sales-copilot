@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { LocalTime } from "@/components/LocalTime";
-import { PLATFORM_LABELS, StatusBadge } from "@/components/ui";
+import { platformLabel, StatusBadge } from "@/components/ui";
 import type { MeetingSummary } from "@/lib/copilot/types";
 import type { MeetingView } from "@/lib/copilot/view";
+import { IN_CALL_STATUSES } from "@/lib/constants/status";
 import { describeStatus } from "@/lib/recall/subCodes";
-
-const IN_CALL = new Set(["joining_call", "in_waiting_room", "in_call_not_recording", "in_call_recording"]);
+import { APP_API } from "@/lib/constants/urls";
 
 export function MeetingHeader({ meeting, view }: { meeting: MeetingSummary; view: MeetingView }) {
   const [leaving, setLeaving] = useState(false);
@@ -18,7 +18,7 @@ export function MeetingHeader({ meeting, view }: { meeting: MeetingSummary; view
   async function leave() {
     setLeaving(true);
     setLeaveError(null);
-    const res = await fetch(`/api/meetings/${meeting.id}/leave`, { method: "POST" });
+    const res = await fetch(APP_API.leave(meeting.id), { method: "POST" });
     if (!res.ok) {
       setLeaveError((await res.json().catch(() => null))?.error ?? "Could not remove the bot");
       setLeaving(false);
@@ -29,7 +29,7 @@ export function MeetingHeader({ meeting, view }: { meeting: MeetingSummary; view
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0 space-y-1">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">{PLATFORM_LABELS[meeting.platform] ?? "Meeting"} call</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{platformLabel(meeting.platform) ?? "Meeting"} call</h1>
           <StatusBadge code={meeting.statusCode} />
         </div>
         <p className="truncate text-sm text-zinc-500">
@@ -51,7 +51,7 @@ export function MeetingHeader({ meeting, view }: { meeting: MeetingSummary; view
         )}
       </div>
 
-      {IN_CALL.has(meeting.statusCode) && meeting.botId && (
+      {IN_CALL_STATUSES.has(meeting.statusCode) && meeting.botId && (
         <div className="text-right">
           <button
             onClick={leave}

@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import type { MeetingSummary, StoredEvent } from "@/lib/copilot/types";
 import { buildMeetingView, type MeetingView } from "@/lib/copilot/view";
+import { RECALL_STATUS } from "@/lib/constants/recall";
+import { APP_STATUS, WRAPPING_UP_STATUSES } from "@/lib/constants/status";
+import { APP_API } from "@/lib/constants/urls";
 
 type FeedResponse = { meeting: MeetingSummary; events: StoredEvent[]; hasMore: boolean };
 
@@ -13,12 +16,12 @@ export type MeetingState = { meeting: MeetingSummary; view: MeetingView; error: 
  * Swapping polling for a push transport (Pusher, Ably, ...) only changes this hook.
  */
 function nextPollDelay(meeting: MeetingSummary, view: MeetingView): number | null {
-  if (view.insights || meeting.statusCode === "create_failed") return null;
-  const everRecorded = view.statuses.some((s) => s.code === "in_call_recording");
-  if (meeting.statusCode === "fatal" && !everRecorded) return null;
+  if (view.insights || meeting.statusCode === APP_STATUS.createFailed) return null;
+  const everRecorded = view.statuses.some((s) => s.code === RECALL_STATUS.inCallRecording);
+  if (meeting.statusCode === RECALL_STATUS.fatal && !everRecorded) return null;
   if (document.hidden) return 5_000;
-  if (meeting.statusCode === "scheduled") return 5_000;
-  if (meeting.statusCode === "done" || meeting.statusCode === "call_ended") return 2_000; // post-call processing
+  if (meeting.statusCode === APP_STATUS.scheduled) return 5_000;
+  if (WRAPPING_UP_STATUSES.has(meeting.statusCode)) return 2_000;
   return 1_000;
 }
 
@@ -44,7 +47,7 @@ export function useMeetingEvents(initialMeeting: MeetingSummary, initialEvents: 
       let meeting: MeetingSummary | undefined;
       let hasMore = true;
       while (hasMore) {
-        const res = await fetch(`/api/meetings/${meetingId}/events?after=${cursor}`, { cache: "no-store" });
+        const res = await fetch(APP_API.events(meetingId, cursor), { cache: "no-store" });
         if (!res.ok) throw new Error(`Feed returned ${res.status}`);
         const data = (await res.json()) as FeedResponse;
         if (cancelled) return null;

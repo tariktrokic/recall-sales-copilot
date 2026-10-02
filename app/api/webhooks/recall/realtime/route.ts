@@ -1,5 +1,5 @@
-import { ingestRealtimeEvent } from "@/lib/meetings/service";
-import { receiveRecallWebhook } from "@/lib/meetings/webhooks";
+import { ingestRealtimeEvent } from "@/lib/meetings/ingestService";
+import { receiveRecallWebhook } from "@/lib/webhooks/receiver";
 
 /**
  * Realtime endpoint for transcript and participant events. Configured per bot in

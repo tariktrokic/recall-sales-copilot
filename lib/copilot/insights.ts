@@ -5,7 +5,8 @@ import { salesInsightsSchema, type SalesInsights } from "./insightsSchema";
 import { prospectQuestions } from "./questions";
 import { computeTalkTime } from "./talkTime";
 import { transcriptToText } from "./transcript";
-import type { Segment } from "./types";
+import { INSIGHTS_SOURCE } from "@/lib/constants/events";
+import type { InsightsResult, Segment } from "./types";
 
 /**
  * LLM-backed summaries, with deterministic fallbacks so the app still works without a model.
@@ -65,7 +66,7 @@ export async function generateInsights(input: {
   segments: Segment[];
   notes: Note[];
   repName: string | null;
-}): Promise<{ insights: SalesInsights; generatedBy: "llm" | "rules"; model: string }> {
+}): Promise<InsightsResult> {
   const m = model();
   if (m && input.segments.length > 0) {
     try {
@@ -81,12 +82,12 @@ export async function generateInsights(input: {
           `Notes the team saved during the call:\n${notesBlock(input.notes)}\n\n` +
           `Transcript:\n${transcriptToText(input.segments).slice(0, MAX_TRANSCRIPT_CHARS)}`,
       });
-      return { insights: output, generatedBy: "llm", model: m.id };
+      return { insights: output, generatedBy: INSIGHTS_SOURCE.llm, model: m.id };
     } catch (err) {
       console.error("insights LLM call failed, using fallback", err);
     }
   }
-  return { insights: ruleBasedInsights(input), generatedBy: "rules", model: "rules" };
+  return { insights: ruleBasedInsights(input), generatedBy: INSIGHTS_SOURCE.rules, model: INSIGHTS_SOURCE.rules };
 }
 
 /** Deterministic summary used when no LLM is configured (or the call to it fails). */

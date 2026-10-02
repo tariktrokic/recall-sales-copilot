@@ -1,12 +1,13 @@
 import { LocalTime } from "@/components/LocalTime";
 import { Card, Empty } from "@/components/ui";
 import type { MeetingView } from "@/lib/copilot/view";
+import { ARTIFACT_KIND, type ArtifactKind } from "@/lib/constants/events";
 import { describeStatus } from "@/lib/recall/subCodes";
 
-const ARTIFACT_LABELS: Record<string, string> = {
-  recording: "Recording",
-  live_transcript: "Live transcript",
-  post_call_transcript: "Post-call transcript",
+const ARTIFACT_LABELS: Record<ArtifactKind, string> = {
+  [ARTIFACT_KIND.recording]: "Recording",
+  [ARTIFACT_KIND.liveTranscript]: "Live transcript",
+  [ARTIFACT_KIND.postCallTranscript]: "Post-call transcript",
 };
 
 /** Raw bot lifecycle from Recall's status webhooks: handy when a bot misbehaves. */

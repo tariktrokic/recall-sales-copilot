@@ -117,25 +117,28 @@ Sequence diagrams for the bot lifecycle, realtime path, and post-call path are i
 
 | File | What's in it |
 |---|---|
-| [`lib/recall/botConfig.ts`](lib/recall/botConfig.ts) | **Start here.** Everything about how the bot behaves: name, consent message, transcription mode, realtime events, timeouts, retention. |
+| [`lib/recall/botConfig.ts`](lib/recall/botConfig.ts) | **Start here.** Everything about how the bot behaves: name, consent message, transcription mode, timeouts, retention. |
+| [`lib/constants/`](lib/constants) | One file per vocabulary: `recall.ts` (Recall's status codes, event names, and meeting platforms, how events map to ours, and what the bot subscribes to), `events.ts` (our own event types and the closed sets in their payloads), `status.ts` (our own statuses and the lifecycle groups), `urls.ts` (every API path). |
 | [`lib/recall/client.ts`](lib/recall/client.ts) | Typed Recall client. Retries 429 (with `Retry-After`), 507 (bot pool busy), and 5xx; idempotency keys; helpful error hints. |
 | [`lib/recall/verify.ts`](lib/recall/verify.ts) | Webhook signature verification with timestamp tolerance and constant-time comparison. |
 | [`lib/recall/events.ts`](lib/recall/events.ts), [`subCodes.ts`](lib/recall/subCodes.ts) | zod schemas for webhook payloads; status and sub-code explanations. |
-| [`lib/meetings/webhooks.ts`](lib/meetings/webhooks.ts) | The shared webhook pipeline: verify, dedupe, store, respond, then `after()`. |
-| [`lib/meetings/service.ts`](lib/meetings/service.ts) | Creating meetings, turning webhooks into events, routing chat commands and the post-call pipeline. |
-| [`lib/meetings/postCall.ts`](lib/meetings/postCall.ts), [`chat.ts`](lib/meetings/chat.ts) | Post-call transcript and summary (with fallback); `@copilot` replies (with a database-backed rate limit). |
+| [`lib/webhooks/receiver.ts`](lib/webhooks/receiver.ts) | The shared webhook pipeline: verify, dedupe, store, respond, then `after()`. |
+| [`lib/db/repository.ts`](lib/db/repository.ts) | Every database query, next to the connection and schema in `lib/db/`. |
+| [`lib/meetings/ingestService.ts`](lib/meetings/ingestService.ts) | What each webhook means: Recall payloads become our events, plus any slow follow-up work. |
+| [`lib/meetings/meetingService.ts`](lib/meetings/meetingService.ts) | Dashboard actions: create a meeting (send a bot), remove the bot, get the recording. |
+| [`lib/meetings/postCallService.ts`](lib/meetings/postCallService.ts), [`chatService.ts`](lib/meetings/chatService.ts) | Post-call transcript and summary (with fallback); `@copilot` replies (with a database-backed rate limit). |
 | [`lib/copilot/`](lib/copilot) | Pure functions shared by server and browser: talk time, question detection, chat command parsing, the event-to-view reducer, LLM prompts and the insights schema. |
 | [`hooks/useMeetingEvents.ts`](hooks/useMeetingEvents.ts) | The polling hook, with adaptive intervals. |
 | [`tests/`](tests) | Unit tests for all of the above, using webhook fixtures in `tests/fixtures/`. |
 
 ## Extending this
 
-- **Push to your CRM.** `summarize()` in [`lib/meetings/postCall.ts`](lib/meetings/postCall.ts) has the validated `SalesInsights` object in hand. Add a HubSpot or Salesforce call next to `saveInsights()`.
+- **Push to your CRM.** `summarize()` in [`lib/meetings/postCallService.ts`](lib/meetings/postCallService.ts) has the validated `SalesInsights` object in hand. Add a HubSpot or Salesforce call next to `saveInsights()`.
 - **Change the methodology.** The insights schema and prompts are in [`lib/copilot/insightsSchema.ts`](lib/copilot/insightsSchema.ts) and [`insights.ts`](lib/copilot/insights.ts). Swap MEDDIC for BANT or SPICED by editing the schema; the UI renders whatever fields it has.
 - **Join calls automatically.** Recall's [Calendar integration](https://docs.recall.ai/docs/calendar-integration) can schedule bots from reps' calendars. It needs Google or Microsoft OAuth, which is why this demo uses a pasted link.
 - **Let the bot speak.** [Output Media](https://docs.recall.ai/docs/stream-media) lets a bot play audio or show a webpage, the basis for a voice agent that answers questions mid-call.
 - **Record without a bot.** The [Desktop Recording SDK](https://docs.recall.ai/docs/desktop-sdk) captures calls from the rep's computer. Its events can go into the same `meeting_events` log.
-- **Add commands.** Chat commands are parsed in [`lib/copilot/commands.ts`](lib/copilot/commands.ts) and answered in [`lib/meetings/chat.ts`](lib/meetings/chat.ts). `@copilot ask <question>` is a natural next one.
+- **Add commands.** Chat commands are parsed in [`lib/copilot/commands.ts`](lib/copilot/commands.ts) and answered in [`lib/meetings/chatService.ts`](lib/meetings/chatService.ts). `@copilot ask <question>` is a natural next one.
 
 ## Production checklist
 

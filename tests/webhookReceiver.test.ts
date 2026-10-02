@@ -11,10 +11,10 @@ const repo = vi.hoisted(() => ({
 }));
 const afterCallbacks = vi.hoisted(() => [] as (() => Promise<void>)[]);
 
-vi.mock("@/lib/meetings/repository", () => repo);
+vi.mock("@/lib/db/repository", () => repo);
 vi.mock("next/server", () => ({ after: (cb: () => Promise<void>) => afterCallbacks.push(cb) }));
 
-const { receiveRecallWebhook } = await import("@/lib/meetings/webhooks");
+const { receiveRecallWebhook } = await import("@/lib/webhooks/receiver");
 
 function signedRequest(body: string, headers = signRecallPayload(SECRET, body, { id: "msg_1" })) {
   return new Request("https://app.example.com/api/webhooks/recall", { method: "POST", body, headers });

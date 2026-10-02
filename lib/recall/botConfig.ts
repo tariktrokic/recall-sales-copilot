@@ -1,10 +1,14 @@
 /**
  * Everything about how the bot behaves lives here. This is the file to edit first when
- * adapting the app: bot name, consent message, transcription settings, which realtime
- * events to receive, and how long to wait in empty or locked meetings.
+ * adapting the app: bot name, consent message, transcription settings, and how long to wait
+ * in empty or locked meetings. Which realtime events it subscribes to is derived from the
+ * handled events in `lib/constants/recall.ts`.
  *
  * Create Bot reference: https://docs.recall.ai/reference/bot_create
  */
+
+import { RECALL_PLATFORM, REALTIME_EVENTS, type Platform } from "@/lib/constants/recall";
+import { WEBHOOK_PATHS } from "@/lib/constants/urls";
 
 export const BOT_NAME = "Sales Copilot";
 
@@ -12,30 +16,27 @@ export const CONSENT_MESSAGE =
   "Hi! I'm Sales Copilot, a notetaker for this call. This meeting is being recorded and transcribed. " +
   "Type @copilot help to see what I can do.";
 
-export type Platform = "zoom" | "google_meet" | "microsoft_teams" | "webex" | "unknown";
+// Seconds the bot waits before leaving on its own (`automatic_leave`). Recall bills for time
+// spent in the waiting room or an empty meeting, and its defaults are 20 minutes; a demo needs less.
+
+/** Nobody admits the bot from the waiting room. Ends with sub-code `timeout_exceeded_waiting_room`. */
+export const WAITING_ROOM_TIMEOUT_SECONDS = 10 * 60;
+/** The bot got in, but no one else ever joined. Ends with sub-code `timeout_exceeded_noone_joined`. */
+export const NOONE_JOINED_TIMEOUT_SECONDS = 10 * 60;
 
 export function detectPlatform(meetingUrl: string): Platform {
   let host: string;
   try {
     host = new URL(meetingUrl).hostname;
   } catch {
-    return "unknown";
+    return RECALL_PLATFORM.unknown;
   }
-  if (host.endsWith("zoom.us") || host.endsWith("zoomgov.com")) return "zoom";
-  if (host === "meet.google.com") return "google_meet";
-  if (host.endsWith("teams.microsoft.com") || host.endsWith("teams.live.com")) return "microsoft_teams";
-  if (host.endsWith("webex.com")) return "webex";
-  return "unknown";
+  if (host.endsWith("zoom.us") || host.endsWith("zoomgov.com")) return RECALL_PLATFORM.zoom;
+  if (host === "meet.google.com") return RECALL_PLATFORM.googleMeet;
+  if (host.endsWith("teams.microsoft.com") || host.endsWith("teams.live.com")) return RECALL_PLATFORM.microsoftTeams;
+  if (host.endsWith("webex.com")) return RECALL_PLATFORM.webex;
+  return RECALL_PLATFORM.unknown;
 }
-
-/** Realtime events this app consumes. Each one costs a webhook per occurrence, so keep it lean. */
-export const REALTIME_EVENTS = [
-  "transcript.data",
-  "transcript.partial_data",
-  "participant_events.join",
-  "participant_events.leave",
-  "participant_events.chat_message",
-] as const;
 
 export function buildBotConfig(opts: {
   meetingUrl: string;
@@ -58,13 +59,12 @@ export function buildBotConfig(opts: {
         send_to: "everyone",
         message: CONSENT_MESSAGE,
         // Pinning is only supported on Google Meet.
-        pin: platform === "google_meet",
+        pin: platform === RECALL_PLATFORM.googleMeet,
       },
     },
-    // Waiting-room and empty-room time is billed. Defaults are 20 minutes; a demo needs less.
     automatic_leave: {
-      waiting_room_timeout: 600,
-      noone_joined_timeout: 600,
+      waiting_room_timeout: WAITING_ROOM_TIMEOUT_SECONDS,
+      noone_joined_timeout: NOONE_JOINED_TIMEOUT_SECONDS,
     },
     recording_config: {
       transcript: {
@@ -79,8 +79,7 @@ export function buildBotConfig(opts: {
       realtime_endpoints: [
         {
           type: "webhook",
-          // No trailing slash: Next.js would answer it with a 308 redirect.
-          url: `${opts.publicUrl}/api/webhooks/recall/realtime`,
+          url: `${opts.publicUrl}${WEBHOOK_PATHS.realtime}`,
           events: [...REALTIME_EVENTS],
         },
       ],

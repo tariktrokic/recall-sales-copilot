@@ -1,6 +1,6 @@
 import { statusWebhookSchema } from "@/lib/recall/events";
-import { ingestStatusWebhook } from "@/lib/meetings/service";
-import { receiveRecallWebhook } from "@/lib/meetings/webhooks";
+import { ingestStatusWebhook } from "@/lib/meetings/ingestService";
+import { receiveRecallWebhook } from "@/lib/webhooks/receiver";
 
 /**
  * Dashboard webhooks (delivered by Svix): bot.*, recording.*, transcript.*.

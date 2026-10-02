@@ -1,4 +1,4 @@
-import { eventsAfter, getMeeting, toSummary } from "@/lib/meetings/repository";
+import { eventsAfter, getMeeting, toSummary } from "@/lib/db/repository";
 
 const PAGE_SIZE = 500;
 

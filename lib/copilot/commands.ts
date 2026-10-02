@@ -1,3 +1,5 @@
+import { RECALL_PLATFORM } from "@/lib/constants/recall";
+
 /**
  * In-meeting chat commands. Participants type `@copilot <command>` (or `/copilot`) in the
  * meeting chat and the bot replies there.
@@ -39,7 +41,7 @@ export const HELP_TEXT =
 
 /** Google Meet caps chat messages at 500 characters; Zoom and Teams allow 4096. */
 export function maxChatLength(platform: string): number {
-  return platform === "google_meet" ? 500 : 4096;
+  return platform === RECALL_PLATFORM.googleMeet ? 500 : 4096;
 }
 
 export function fitChatMessage(text: string, max: number): string {

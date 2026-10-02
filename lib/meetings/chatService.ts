@@ -2,8 +2,9 @@ import * as recall from "@/lib/recall/client";
 import { fitChatMessage, HELP_TEXT, maxChatLength, REPLY_PREFIX, type ChatCommand } from "@/lib/copilot/commands";
 import { generateRecap } from "@/lib/copilot/insights";
 import type { Speaker } from "@/lib/copilot/types";
+import { APP_EVENT, PIPELINE_STAGE } from "@/lib/constants/events";
 import type { Meeting } from "@/lib/db/schema";
-import * as repo from "./repository";
+import * as repo from "@/lib/db/repository";
 
 const REPLY_INTERVAL_SECONDS = 5;
 
@@ -14,7 +15,7 @@ export async function handleChatCommand(meeting: Meeting, command: ChatCommand, 
 
   // Notes are saved even when the reply itself gets rate-limited.
   if (command.kind === "note") {
-    await repo.appendEvent(meeting.id, { type: "note", payload: { text: command.text, by: from.name, at: at() } });
+    await repo.appendEvent(meeting.id, { type: APP_EVENT.note, payload: { text: command.text, by: from.name, at: at() } });
   }
 
   if (!(await repo.claimReplySlot(meeting.id, REPLY_INTERVAL_SECONDS))) return;
@@ -30,8 +31,8 @@ export async function handleChatCommand(meeting: Meeting, command: ChatCommand, 
     case "recap": {
       // Recall has no "transcript so far" endpoint, so recaps come from our own event log.
       const [finals, notes] = await Promise.all([
-        repo.eventsOfType(meeting.id, ["transcript.final"]),
-        repo.eventsOfType(meeting.id, ["note"]),
+        repo.eventsOfType(meeting.id, [APP_EVENT.transcriptFinal]),
+        repo.eventsOfType(meeting.id, [APP_EVENT.note]),
       ]);
       const recap = await generateRecap(
         finals.map((e) => e.payload),
@@ -51,8 +52,8 @@ export async function handleChatCommand(meeting: Meeting, command: ChatCommand, 
   } catch (err) {
     // Typically the bot already left, or the platform blocks bot chat for this meeting.
     const detail = err instanceof Error ? err.message : String(err);
-    await repo.appendEvent(meeting.id, { type: "pipeline.error", payload: { stage: "chat_reply", message: detail, at: at() } });
+    await repo.appendEvent(meeting.id, { type: APP_EVENT.pipelineError, payload: { stage: PIPELINE_STAGE.chatReply, message: detail, at: at() } });
     return;
   }
-  await repo.appendEvent(meeting.id, { type: "chat.out", payload: { text: message, at: at() } });
+  await repo.appendEvent(meeting.id, { type: APP_EVENT.chatOut, payload: { text: message, at: at() } });
 }

@@ -20,11 +20,11 @@ const postCall = vi.hoisted(() => ({
 }));
 const chat = vi.hoisted(() => ({ handleChatCommand: vi.fn() }));
 
-vi.mock("@/lib/meetings/repository", () => repo);
-vi.mock("@/lib/meetings/postCall", () => postCall);
-vi.mock("@/lib/meetings/chat", () => chat);
+vi.mock("@/lib/db/repository", () => repo);
+vi.mock("@/lib/meetings/postCallService", () => postCall);
+vi.mock("@/lib/meetings/chatService", () => chat);
 
-const { ingestRealtimeEvent, ingestStatusWebhook } = await import("@/lib/meetings/service");
+const { ingestRealtimeEvent, ingestStatusWebhook } = await import("@/lib/meetings/ingestService");
 
 const meeting = (overrides = {}) => ({
   id: MEETING_ID,

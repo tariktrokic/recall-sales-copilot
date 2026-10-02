@@ -6,10 +6,10 @@ const repo = vi.hoisted(() => ({ appendEvent: vi.fn(), claimReplySlot: vi.fn(), 
 const insights = vi.hoisted(() => ({ generateRecap: vi.fn() }));
 
 vi.mock("@/lib/recall/client", () => recall);
-vi.mock("@/lib/meetings/repository", () => repo);
+vi.mock("@/lib/db/repository", () => repo);
 vi.mock("@/lib/copilot/insights", () => insights);
 
-const { handleChatCommand } = await import("@/lib/meetings/chat");
+const { handleChatCommand } = await import("@/lib/meetings/chatService");
 
 const meeting = { id: "m1", botId: "bot_1", platform: "google_meet" } as Meeting;
 const from = { participantId: 1, name: "Riley Rep", isHost: true };

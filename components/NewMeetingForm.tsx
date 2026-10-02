@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { APP_API } from "@/lib/constants/urls";
 
 type Mode = "now" | "schedule";
 
@@ -19,7 +20,7 @@ export function NewMeetingForm() {
     setPending(true);
     setError(null);
     try {
-      const res = await fetch("/api/meetings", {
+      const res = await fetch(APP_API.meetings, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

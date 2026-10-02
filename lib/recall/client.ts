@@ -1,9 +1,7 @@
 import { env, recallBaseUrl } from "@/lib/env";
+import { RECALL_API } from "@/lib/constants/urls";
 
-/**
- * A small typed client for the Recall.ai REST endpoints this app uses.
- * Every path keeps its trailing slash: Recall's routes require it.
- */
+/** A small typed client for the Recall.ai REST endpoints this app uses. */
 
 export class RecallApiError extends Error {
   constructor(
@@ -130,7 +128,7 @@ export type RecallTranscript = {
 
 /** https://docs.recall.ai/reference/bot_create */
 export function createBot(config: object, opts: { idempotencyKey: string }) {
-  return request<RecallBot>("POST", "/api/v1/bot/", {
+  return request<RecallBot>("POST", RECALL_API.createBot, {
     body: config,
     idempotencyKey: opts.idempotencyKey,
     // Allow a couple of 30s waits for the ad-hoc pool; beyond that, surface the error to the user.
@@ -140,22 +138,22 @@ export function createBot(config: object, opts: { idempotencyKey: string }) {
 
 /** https://docs.recall.ai/reference/bot_retrieve */
 export function getBot(botId: string) {
-  return request<RecallBot>("GET", `/api/v1/bot/${botId}/`);
+  return request<RecallBot>("GET", RECALL_API.bot(botId));
 }
 
 /** https://docs.recall.ai/reference/bot_leave_call_create */
 export function leaveCall(botId: string) {
-  return request<unknown>("POST", `/api/v1/bot/${botId}/leave_call/`);
+  return request<unknown>("POST", RECALL_API.leaveCall(botId));
 }
 
 /** https://docs.recall.ai/reference/bot_send_chat_message_create */
 export function sendChatMessage(botId: string, message: { message: string; to?: string; pin?: boolean }) {
-  return request<unknown>("POST", `/api/v1/bot/${botId}/send_chat_message/`, { body: message });
+  return request<unknown>("POST", RECALL_API.sendChatMessage(botId), { body: message });
 }
 
 /** https://docs.recall.ai/reference/recording_create_transcript_create */
 export function createAsyncTranscript(recordingId: string, body: object, opts: { idempotencyKey: string }) {
-  return request<RecallTranscript>("POST", `/api/v1/recording/${recordingId}/create_transcript/`, {
+  return request<RecallTranscript>("POST", RECALL_API.createTranscript(recordingId), {
     body,
     idempotencyKey: opts.idempotencyKey,
   });
@@ -163,7 +161,7 @@ export function createAsyncTranscript(recordingId: string, body: object, opts: {
 
 /** https://docs.recall.ai/reference/transcript_retrieve */
 export function getTranscript(transcriptId: string) {
-  return request<RecallTranscript>("GET", `/api/v1/transcript/${transcriptId}/`);
+  return request<RecallTranscript>("GET", RECALL_API.transcript(transcriptId));
 }
 
 /** Download URLs are pre-signed (no Authorization header) and expire after a few hours. */

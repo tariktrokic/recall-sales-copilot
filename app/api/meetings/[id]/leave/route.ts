@@ -1,5 +1,5 @@
-import { getMeeting } from "@/lib/meetings/repository";
-import { makeBotLeave } from "@/lib/meetings/service";
+import { getMeeting } from "@/lib/db/repository";
+import { makeBotLeave } from "@/lib/meetings/meetingService";
 
 /** Asks the bot to leave. Recall then sends call_ended (sub-code bot_received_leave_call) and done. */
 export async function POST(_req: Request, ctx: RouteContext<"/api/meetings/[id]/leave">) {

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { LocalTime } from "@/components/LocalTime";
 import { NewMeetingForm } from "@/components/NewMeetingForm";
-import { Card, Empty, PLATFORM_LABELS, StatusBadge } from "@/components/ui";
-import { listMeetings } from "@/lib/meetings/repository";
+import { Card, Empty, platformLabel, StatusBadge } from "@/components/ui";
+import { listMeetings } from "@/lib/db/repository";
 
 const FEATURES = [
   ["Live transcript", "Low-latency streaming transcription with per-speaker diarization."],
@@ -55,7 +55,7 @@ export default async function Home() {
               <li key={m.id}>
                 <Link href={`/meetings/${m.id}`} className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 hover:bg-zinc-50">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{PLATFORM_LABELS[m.platform] ?? m.platform}</p>
+                    <p className="truncate text-sm font-medium">{platformLabel(m.platform) ?? m.platform}</p>
                     <p className="truncate text-xs text-zinc-500">
                       <LocalTime iso={(m.joinAt ?? m.createdAt).toISOString()} />
                       {" · "}

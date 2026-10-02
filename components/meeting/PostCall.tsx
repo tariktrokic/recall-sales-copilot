@@ -5,6 +5,9 @@ import { Card, Empty } from "@/components/ui";
 import { formatTimestamp } from "@/lib/copilot/transcript";
 import type { MeetingSummary, Segment } from "@/lib/copilot/types";
 import type { MeetingView } from "@/lib/copilot/view";
+import { TRANSCRIPT_SOURCE } from "@/lib/constants/events";
+import { RECALL_STATUS } from "@/lib/constants/recall";
+import { APP_API } from "@/lib/constants/urls";
 import { InsightCards, SummaryCard } from "./Insights";
 import { speakerColor } from "./speakerColor";
 
@@ -25,13 +28,13 @@ export function PostCall({ meeting, view }: { meeting: MeetingSummary; view: Mee
 
       <div className="grid items-start gap-6 xl:grid-cols-2">
         <Card title="Recording">
-          <Recording meetingId={meeting.id} ready={meeting.statusCode === "done"} videoRef={video} onTime={setCurrentS} />
+          <Recording meetingId={meeting.id} ready={meeting.statusCode === RECALL_STATUS.done} videoRef={video} onTime={setCurrentS} />
         </Card>
         <Card
           title="Transcript"
           aside={
             <span className="text-xs text-zinc-400">
-              {view.postCall?.source === "post_call" ? "Post-call (accurate)" : "Live (low latency)"}
+              {view.postCall?.source === TRANSCRIPT_SOURCE.postCall ? "Post-call (accurate)" : "Live (low latency)"}
             </span>
           }
         >
@@ -47,8 +50,8 @@ export function PostCall({ meeting, view }: { meeting: MeetingSummary; view: Mee
 function Progress({ meeting, view }: { meeting: MeetingSummary; view: MeetingView }) {
   const steps = [
     ["Call ended", true],
-    ["Recording ready", meeting.statusCode === "done"],
-    [view.postCall?.source === "live" ? "Transcript (live fallback)" : "Accurate transcript", view.postCall !== null],
+    ["Recording ready", meeting.statusCode === RECALL_STATUS.done],
+    [view.postCall?.source === TRANSCRIPT_SOURCE.live ? "Transcript (live fallback)" : "Accurate transcript", view.postCall !== null],
     ["Summary and follow-up", view.insights !== null],
   ] as const;
   return (
@@ -88,7 +91,7 @@ function Recording({
 
   const load = useCallback(
     () =>
-      fetch(`/api/meetings/${meetingId}/media`, { cache: "no-store" })
+      fetch(APP_API.media(meetingId), { cache: "no-store" })
         .then((r) => (r.ok ? r.json() : { videoUrl: null }))
         .then((d: { videoUrl: string | null }) => setState(d.videoUrl ? { status: "ready", url: d.videoUrl } : { status: "none" }))
         .catch(() => setState({ status: "none" })),

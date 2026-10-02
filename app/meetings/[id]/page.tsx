@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MeetingDashboard } from "@/components/meeting/MeetingDashboard";
-import { eventsAfter, getMeeting, toSummary } from "@/lib/meetings/repository";
+import { eventsAfter, getMeeting, toSummary } from "@/lib/db/repository";
 
 export const metadata: Metadata = { title: "Call · Sales Call Copilot" };
 

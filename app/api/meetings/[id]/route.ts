@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getMeeting, toSummary, updateMeeting } from "@/lib/meetings/repository";
+import { getMeeting, toSummary, updateMeeting } from "@/lib/db/repository";
 
 const patchSchema = z.object({ repParticipantId: z.number().int().nullable() });
 

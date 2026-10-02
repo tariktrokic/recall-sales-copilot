@@ -1,5 +1,5 @@
-import type { SalesInsights } from "./insightsSchema";
-import type { Segment, Speaker, StoredEvent } from "./types";
+import { APP_EVENT, type ArtifactKind, type PipelineStage } from "@/lib/constants/events";
+import type { InsightsResult, PostCallTranscript, Segment, Speaker, StoredEvent } from "./types";
 
 export type ChatLine = { direction: "in" | "out"; name: string; text: string; at: string };
 
@@ -11,10 +11,10 @@ export type MeetingView = {
   participants: (Speaker & { present: boolean })[];
   chat: ChatLine[];
   notes: { text: string; by: string; at: string }[];
-  postCall: { segments: Segment[]; source: "post_call" | "live" } | null;
-  insights: { insights: SalesInsights; generatedBy: "llm" | "rules"; model: string } | null;
-  errors: { stage: string; message: string; at: string }[];
-  artifacts: { kind: string; code: string; at: string }[];
+  postCall: PostCallTranscript | null;
+  insights: InsightsResult | null;
+  errors: { stage: PipelineStage; message: string; at: string }[];
+  artifacts: { kind: ArtifactKind; code: string; at: string }[];
 };
 
 export function emptyView(): MeetingView {
@@ -60,43 +60,43 @@ export function buildMeetingView(events: StoredEvent[], previous: MeetingView = 
 
   for (const e of events) {
     switch (e.type) {
-      case "status":
+      case APP_EVENT.status:
         view.statuses.push(e.payload);
         break;
-      case "artifact":
+      case APP_EVENT.artifact:
         view.artifacts.push({ kind: e.payload.kind, code: e.payload.code, at: e.payload.at });
         break;
-      case "transcript.partial":
+      case APP_EVENT.transcriptPartial:
         partials.set(e.payload.participantId, e.payload);
         seen(e.payload);
         break;
-      case "transcript.final":
+      case APP_EVENT.transcriptFinal:
         view.finals.push(e.payload);
         partials.delete(e.payload.participantId);
         seen(e.payload);
         break;
-      case "participant.join":
+      case APP_EVENT.participantJoin:
         seen(e.payload, true);
         break;
-      case "participant.leave":
+      case APP_EVENT.participantLeave:
         seen(e.payload, false);
         break;
-      case "chat.in":
+      case APP_EVENT.chatIn:
         view.chat.push({ direction: "in", name: e.payload.name, text: e.payload.text, at: e.payload.at });
         break;
-      case "chat.out":
+      case APP_EVENT.chatOut:
         view.chat.push({ direction: "out", name: "Copilot", text: e.payload.text, at: e.payload.at });
         break;
-      case "note":
+      case APP_EVENT.note:
         view.notes.push(e.payload);
         break;
-      case "postcall.transcript":
+      case APP_EVENT.postCallTranscript:
         view.postCall = e.payload;
         break;
-      case "insights.ready":
+      case APP_EVENT.insightsReady:
         view.insights = e.payload;
         break;
-      case "pipeline.error":
+      case APP_EVENT.pipelineError:
         view.errors.push(e.payload);
         break;
     }

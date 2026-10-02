@@ -17,10 +17,10 @@ const repo = vi.hoisted(() => ({
 const insights = vi.hoisted(() => ({ generateInsights: vi.fn() }));
 
 vi.mock("@/lib/recall/client", () => recall);
-vi.mock("@/lib/meetings/repository", () => repo);
+vi.mock("@/lib/db/repository", () => repo);
 vi.mock("@/lib/copilot/insights", () => insights);
 
-const { processPostCallTranscript, requestPostCallTranscript } = await import("@/lib/meetings/postCall");
+const { processPostCallTranscript, requestPostCallTranscript } = await import("@/lib/meetings/postCallService");
 
 const download = [
   {

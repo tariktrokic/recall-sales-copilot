@@ -2,8 +2,13 @@ import { after } from "next/server";
 import { ZodError } from "zod";
 import { env } from "@/lib/env";
 import { verifyRecallRequest, WebhookVerificationError } from "@/lib/recall/verify";
-import * as repo from "./repository";
-import type { BackgroundTask } from "./service";
+import * as repo from "@/lib/db/repository";
+
+/**
+ * Work that must not delay the webhook response (Recall delivers realtime events in order,
+ * so a slow handler holds up every transcript line behind it). Run with `after()`.
+ */
+export type BackgroundTask = () => Promise<void>;
 
 /**
  * Shared receive path for both Recall webhook routes:

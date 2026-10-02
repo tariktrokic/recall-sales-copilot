@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { RecallApiError } from "@/lib/recall/client";
-import { createMeeting } from "@/lib/meetings/service";
-import { listMeetings, toSummary } from "@/lib/meetings/repository";
+import { createMeeting } from "@/lib/meetings/meetingService";
+import { listMeetings, toSummary } from "@/lib/db/repository";
 
 // Creating an ad-hoc bot can wait ~30s per retry when Recall's warm pool is empty (507).
 export const maxDuration = 120;

@@ -4,29 +4,39 @@
  * Unknown codes fall through to the raw value, because Recall adds new ones over time.
  */
 
+import { RECALL_STATUS } from "@/lib/constants/recall";
+import { APP_STATUS } from "@/lib/constants/status";
+
 export const STATUS_LABELS: Record<string, string> = {
-  created: "Bot created",
-  scheduled: "Scheduled to join",
-  joining_call: "Joining the call",
-  in_waiting_room: "In the waiting room",
-  in_call_not_recording: "In the call, not recording yet",
-  recording_permission_allowed: "Host allowed recording",
-  recording_permission_denied: "Host denied recording",
-  in_call_recording: "Recording",
-  call_ended: "Left the call",
-  done: "Done, media is ready",
-  fatal: "Failed",
-  create_failed: "Could not create the bot",
+  [APP_STATUS.created]: "Bot created",
+  [APP_STATUS.scheduled]: "Scheduled to join",
+  [RECALL_STATUS.joiningCall]: "Joining the call",
+  [RECALL_STATUS.inWaitingRoom]: "In the waiting room",
+  [RECALL_STATUS.inCallNotRecording]: "In the call, not recording yet",
+  [RECALL_STATUS.recordingPermissionAllowed]: "Host allowed recording",
+  [RECALL_STATUS.recordingPermissionDenied]: "Host denied recording",
+  [RECALL_STATUS.inCallRecording]: "Recording",
+  [RECALL_STATUS.callEnded]: "Left the call",
+  [RECALL_STATUS.done]: "Done, media is ready",
+  [RECALL_STATUS.fatal]: "Failed",
+  [APP_STATUS.createFailed]: "Could not create the bot",
 };
 
 export type Tone = "neutral" | "waiting" | "live" | "success" | "error";
 
+const TONES: Record<string, Tone> = {
+  [RECALL_STATUS.inCallRecording]: "live",
+  [RECALL_STATUS.done]: "success",
+  [RECALL_STATUS.fatal]: "error",
+  [APP_STATUS.createFailed]: "error",
+  [RECALL_STATUS.recordingPermissionDenied]: "error",
+  [RECALL_STATUS.inWaitingRoom]: "waiting",
+  [RECALL_STATUS.joiningCall]: "waiting",
+  [RECALL_STATUS.inCallNotRecording]: "waiting",
+};
+
 export function statusTone(code: string): Tone {
-  if (code === "in_call_recording") return "live";
-  if (code === "done") return "success";
-  if (code === "fatal" || code === "create_failed" || code === "recording_permission_denied") return "error";
-  if (code === "in_waiting_room" || code === "joining_call" || code === "in_call_not_recording") return "waiting";
-  return "neutral";
+  return TONES[code] ?? "neutral";
 }
 
 const SUB_CODES: Record<string, { label: string; action?: string }> = {
@@ -89,9 +99,4 @@ export function describeStatus(code: string, subCode?: string | null): { label: 
   if (!subCode) return { label };
   const sub = SUB_CODES[subCode];
   return { label, detail: sub?.label ?? subCode, action: sub?.action };
-}
-
-/** Statuses after which the bot will not produce any more realtime events. */
-export function isTerminalStatus(code: string): boolean {
-  return code === "done" || code === "fatal" || code === "create_failed";
 }

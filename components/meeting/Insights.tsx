@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, Empty } from "@/components/ui";
 import type { SalesInsights } from "@/lib/copilot/insightsSchema";
+import { INSIGHTS_SOURCE } from "@/lib/constants/events";
 import type { MeetingView } from "@/lib/copilot/view";
 
 const SENTIMENT = {
@@ -30,7 +31,7 @@ export function SummaryCard({ result }: { result: NonNullable<MeetingView["insig
             {insights.sentiment}
           </span>
           <span className="text-xs text-zinc-400" title={model}>
-            {generatedBy === "llm" ? "AI generated" : "Rule-based (no LLM configured)"}
+            {generatedBy === INSIGHTS_SOURCE.llm ? "AI generated" : "Rule-based (no LLM configured)"}
           </span>
         </div>
       }

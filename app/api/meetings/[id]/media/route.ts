@@ -1,5 +1,5 @@
-import { getMeeting } from "@/lib/meetings/repository";
-import { getRecordingUrl } from "@/lib/meetings/service";
+import { getMeeting } from "@/lib/db/repository";
+import { getRecordingUrl } from "@/lib/meetings/meetingService";
 import { RecallApiError } from "@/lib/recall/client";
 
 /** Returns a freshly signed video URL. Never store these: they expire after a few hours. */
